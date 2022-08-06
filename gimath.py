@@ -2,48 +2,87 @@
 # Some simple data structures for holding math types.
 # All arguments to trig functions are in radians.
 
-from math import sqrt, sin, asin
+from math import *
 
 ## @var EPSILON
 # Used to fudge equalities to account for floating point innacuracies.
-EPSILON = .001
+EPSILON = .0001
 
-## A class representing a linear equation of the form: y = mx + b.
-class Line:
+## A class representing a ray from an origin with a direction.
+class Ray:
 
-    def __init__(self, _m, _b, _vertical=False, _x=0):
+    def __init__(self, _origin, _direction):
         ## Constructer
-        # @param _m the slope.
-        # @param _b the y intersect.
-        # @param _veritcal special case if slope is undefined.
-        # @param _x only defined if we have a vertical line.
-        self.m = _m
-        self.b = _b
-        self.vertical = _vertical
-        self.x = _x
+        # @param _origin where the ray starts.
+        # @param _direction the direction in which the ray points.
+        self.origin = _origin
+        self.direction = self.normalize(_direction)
+
+    def normalize(self, _point):
+        ## Returns a normalized point.
+        # assumes the point is x, y
+        mag = sqrt(_point[0] * _point[0] + _point[1] * _point[1])
+        return (_point[0] / mag, _point[1] / mag)
 
     def getY(self, _x):
         ## Returns a y value for a given x
         # @param _x the x value.
-        if self.vertical:
+
+        # check if we are vertical.
+        if self.direction[0] == 0:
+            print("getY() called on vertical ray")
             return None
         else:
-            return self.m * _x + self.b
+            return (_x - self.origin[0]) * (self.direction[1] / self.direction[0]) + self.origin[1]
 
     def getX(self, _y):
         ## Returns an x value for a given y.
         # @param _y the y value.
-        if self.vertical:
-            return self.x
+
+        # check if horizontal.
+        if self.direction[1] == 0:
+            print("getX() called on horizontal ray")
+            return None
         else:
-            return (_y - self.b) / self.m
+            return (_y - self.origin[1]) * (self.direction[0] / self.direction[1]) + self.origin[0]
 
     def translate(self, _x, _y):
         ## Translates the given line by _x and _y.
         # @param _x how much to translate in x.
         # @param _y how much to translate in y.
-        self.b = -self.m * _x + self.b + _y
+        self.origin = (self.origin[0] + _x, self.origin[1] + _y)
 
+    def dot(self, _ray):
+        ## The dot product of this ray with another.
+        # because all directions are normalized. This is a normalized dot product.
+        # @param _ray the ray to be dot producted with.
+
+        return self.direction[0] * _ray.direction[0] + self.direction[1] * _ray.direction[1]
+
+    def rotate(self, _theta):
+        ## rotate the vector by _theta.
+        # @param the number of radians to rotate counterclockwise.
+        dirX = (cos(_theta) * self.direction[0] - sin(_theta) * self.direction[1])
+        dirY = (sin(_theta) * self.direction[0] + cos(_theta) * self.direction[1])
+
+        self.direction = self.normalize((dirX, dirY))
+
+    def findIntersection(self, _ray):
+        ## Returns the point at which the two rays intersect.
+        # Returns None if the rays are parallel.
+        # @param _ray the ray to intersect with.
+
+        if self.dot(_ray) == 1:
+            print("find_intersection(): given parallel rays")
+            return None
+
+        delta1 = self.direction[1] / self.direction[0]
+        delta2 = _ray.direction[1] / _ray.direction[0]
+        x = (self.origin[1] - delta1 * self.origin[0]) - (_ray.origin[1] - delta2 * _ray.origin[0])
+        x = x / (delta2 - delta1)
+        y = self.getY(x)
+
+        return (x, y)
 
 ## A class representing a circle of the form (x - x1)^2 + (y - y1)^2 = r^2
 class Circle:
@@ -81,26 +120,64 @@ class Circle:
         # @param _y the y position on the edge.
         assert self.isPointOnCircle(_x, _y)
 
-        if _x == self.x1:
-            return Line(0, 0, True, _x)
-        else:
-            m = (_y - self.y1) / (_x - self.x1)
-            b = _y - m * _x
-            return Line(m, b)
+        return Ray((_x, _y), (_x - self.x1, _y - self.y1))
 
 
 ## Some helper functions
 class Utils:
 
-    def findAngle(_line1, _line2):
-        #TODO
+    def findAngle(_ray1, _ray2):
+        ## Returns the angle between the two lines.
+        # This is the angle that is in the same direction as both lines.
+        # TF the order of the arguments does not matter.
+        # @param _line1 the first line.
+        # @param _line2 the second line.
+        return acos(_ray1.dot(_ray2))
 
     def snells(_theta1, _n1, _n2):
         ## Returns the resulting angle from Snell's Law.
         # @param _theta1 the incident angle.
         # @param _n1 the initial index of refraction.
         # @param _n2 the secondary index of refraction.
-        return asin(_n2 / _n1 * sin(_theta1))
+        return asin(_n1 * sin(_theta1) / _n2)
 
-    def snells2():
-        #TODO
+    def snells2(_ray, _normal, _n1, _n2):
+        ## Returns a new line that results from this ray refracting into this material.
+        # @param _ray the incident ray of light.
+        # @param _normal the normal line to the lense.
+        # @param _n1 the index of refraction for the initial material.
+        # @param _n2 the index of refraction for the refracting material.
+
+        # we take the magnitude here because we assume that the angle of incidence
+        # is accute.
+        dot = abs(_ray.dot(_normal))
+
+        if abs(dot) < EPSILON:
+            print("snells2(): incident ray is orthogonal to normal")
+            exit()
+
+        # find the angle of the new line wr to the original line.
+        theta_initial = acos(dot)
+        theta_diff = theta_initial - Utils.snells(theta_initial, _n1, _n2)
+
+        retval1 = Ray(_normal.origin, _ray.direction)
+        retval2 = Ray(_normal.origin, _ray.direction)
+        retval1.rotate(theta_diff)
+        retval2.rotate(-theta_diff)
+
+        if theta_diff > 0:
+            # This means that we are getting closer to the norm.
+            # Therefore we rotate a vector both ways and see which is more in line
+            # with the norm.
+            if abs(retval1.dot(_normal)) > abs(dot):
+                return retval1
+            else:
+                return retval2
+        else:
+            # This means that we are getting farther from the norm.
+            # Therefore we rotate a vector both ways and see which is less in line
+            # with the norm.
+            if abs(retval1.dot(_normal)) < abs(dot):
+                return retval1
+            else:
+                return retval2
