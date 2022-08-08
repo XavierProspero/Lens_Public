@@ -182,33 +182,39 @@ class Utils:
             else:
                 return retval2
 
-        def findIntersection(_circle, _ray):
-            ## Finds the set of points in which the ray intersects with the circle.
-            # @param _circle the circle.
-            # @param _ray the incident ray.
+    def findIntersection(_circle, _ray):
+        ## Finds the set of points in which the ray intersects with the circle.
+        # @param _circle the circle.
+        # @param _ray the incident ray.
+        # @return the point farther to the right is always returned first.
 
-            # make the center of the circle the new origin
-            origin = (_circle.x1, _circle.y1)
+        # make the center of the circle the new origin
+        origin = (_circle.x1, _circle.y1)
 
-            circle_centered = Circle(0, 0, _circle.r)
-            ray_centered = Ray(_ray.origin, _ray.direction)
-            ray_centered.translate((-origin[0], -origin[1]))
+        circle_centered = Circle(0, 0, _circle.r)
+        ray_centered = Ray(_ray.origin, _ray.direction)
+        ray_centered.translate(-origin[0], -origin[1])
 
-            # put ray in slope intercept form.
-            m = ray_centered.direction[1] / ray_centered.direction[0]
-            b = ray_centered.getY(x)
+        # put ray in slope intercept form.
+        m = ray_centered.direction[1] / ray_centered.direction[0]
+        b = ray_centered.getY(0)
 
-            # Use this equation https://www.embibe.com/exams/intersection-between-circle-and-line
-            D = (2 * m * b) ** 2 - 4 * (1 + m * m) * (b * b - circle_centered.r * circle_centered.r)
+        # Substuting y = mx + b into x**2 + y**2 = r**2 we get.
+        # x**2 + (mx + b)**2 = r**2
+        # We then use the quadratic formula on this.
+        r = circle_centered.r
+        D = (4 * ((m * b) ** 2)) - (4 * (1 + m * m) * (b * b - r * r))
 
-            if D < 0:
-                print("findIntersection() found no intersection between circle and ray")
-                return None
-            elif D == 0:
-                print("findIntersection() given a ray tangent to circle")
-                x = - ((2 * m * b) ** 2) / (2 * (1 + m * m))
-                return (x, _ray.getY(x))
-            else:
-                x1 = - ((2 * m * b) ** 2 + D) / (2 * (1 + m * m))
-                x2 = - ((2 * m * b) ** 2 - D) / (2 * (1 + m * m))
-                return [(x1, _ray.getY(x1)), (x2, _ray.getY(x2))]
+        if D < 0:
+            print("findIntersection() found no intersection between circle and ray")
+            return None
+        elif D == 0:
+            print("findIntersection() given a ray tangent to circle")
+            x = (-(2 * m * b)) / (2 * (1 + m * m))
+            return (x + origin[0], _ray.getY(x) + origin[1])
+        else:
+            x1 = ((-2 * m * b) + sqrt(D)) / (2 * (1 + m * m))
+            x2 = ((-2 * m * b) - sqrt(D)) / (2 * (1 + m * m))
+            y1 = ray_centered.getY(x1)
+            y2 = ray_centered.getY(x2)
+            return [(x1 + origin[0], y1 + origin[1]), (x2 + origin[0], y2 + origin[1])]

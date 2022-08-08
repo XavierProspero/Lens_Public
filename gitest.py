@@ -97,3 +97,23 @@ def test_utils():
     assert ray_out.origin == (0, 0)
     norm_direction = ray_out.normalize((-1, -0.7100244090273644))
     assert soft_equal_tuple(norm_direction, ray_out.direction)
+
+    # Testing findIntersection
+    # Sanity check
+    circle = Circle(0, 0, 1)
+    ray = Ray((0, 1), (1, -1))
+    intersects = Utils.findIntersection(circle, ray)
+    assert intersects[0] == (1, 0)
+    assert intersects[1] == (0, 1)
+
+    circle = Circle(0, 0, 2.4)
+    ray = Ray((0, 22.77), (1, 23))
+    intersects = Utils.findIntersection(circle, ray)
+    assert soft_equal_tuple(intersects[0], (-0.8931, 2.2276))
+    assert soft_equal_tuple(intersects[1], (-1.0831, -2.1416))
+
+    circle = Circle(3, 1.23, 2.4)
+    ray = Ray((0, -45), (1, 23))
+    intersects = Utils.findIntersection(circle, ray)
+    assert soft_equal_tuple(intersects[0], (2.1068, 3.4576))
+    assert soft_equal_tuple(intersects[1], (1.9168, -0.9117))
