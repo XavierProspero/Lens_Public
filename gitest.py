@@ -176,6 +176,13 @@ def test_lense():
 
     ray_in1 = Ray((100, 0), (-1, .01))
     ray_out2 = lense.refract(ray_in1)
-    print(ray_out2.origin, ray_out2.direction)
 
     #TODO write a proper test.
+
+from gicameramodel import CameraModel
+
+def test_camera_model():
+
+    camera = CameraModel(10, 10, 5, 5, 10, 5, 11, 50)
+    camera.sample_point_source(100)
+    print(camera.sensor.sensor)

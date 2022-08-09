@@ -20,6 +20,7 @@ class Sensor:
         # @param _h the sensor height
         # @param _M the number of pixels along x or y
         self.h = _h
+        assert _M // 2 != _M / 2, "Sensor() _M must be odd."
         self.M = _M
         self.sensor = np.zeros((self.M, self.M))
 
@@ -92,7 +93,6 @@ class Lense:
         self.lense2 = Circle(_R2 - (_T / 2), 0, _R2)
         self.n_air = 1.0
         self.n_glass = 1.5168
-        print("lense1 {} {}, origin {}".format(self.lense1.x1, self.lense1.y1, self.lense1.r) )
         #TODO allow for refraction index based off of wavelength.
 
     def refract(self, _ray):
@@ -101,7 +101,6 @@ class Lense:
         intersection1 = Utils.findIntersection(self.lense1, _ray)[0]
         normal1 = self.lense1.getNormal(intersection1[0], intersection1[1])
         inner_ray = Utils.snells2(_ray, normal1, self.n_air, self.n_glass)
-        print("intersetction {}, inner_ray {}, {}".format(intersection1, inner_ray.origin, inner_ray.direction))
 
         # Now we calculate the ray that comes out of the left side.
         intersection2 = Utils.findIntersection(self.lense2, inner_ray)[1]
@@ -112,3 +111,52 @@ class Lense:
 
 
 ## The lense, point source object and sensor all in one place.
+# descriptions of new params.
+# D2: Distance from backside of lense to sensor.
+class CameraModel:
+    def __init__(self, _R1, _R2, _T, _OD, _D2, _h, _M, _D):
+        ## Constructer.
+        # @param _R1 Radius of lense on subject side.
+        # @param _R2 Radius of lense on sensor side.
+        # @param _T  Thickness of lense at center
+        # @param _OD The aperture of the lense.
+        # @param _D2 Distance from back of lense to sensor.
+        # @param _h  Height of sensor.
+        # @param _M  Number pixels on sensor (M x M)
+        # @param _D  Distance from point source to front of lense.
+        self.lense = Lense(_R1, _R2, _T, _OD)
+        self.sensor = Sensor(_h, _M)
+        self.T = _T
+        self.sensor_pos = -_T / 2 - _D2
+        self.source_pos = _T / 2 + _D
+        self.lense_miss = 0
+
+    def sample_ray(self, _theta):
+        ## Fire a ray form the point source and record where it hits the
+        # sensor.
+        # @param _theta The angle at which it is fired.
+        ray_in = Ray((self.source_pos, 0), (-1, tan(_theta)))
+        ray_out = self.lense.refract(ray_in)
+
+        # check if we hit the sensor.
+        sensorYPos = ray_out.getY(self.sensor_pos)
+        if abs(sensorYPos) > self.sensor.h:
+            self.lense_miss += 1
+            print("CameraModel::sample_ray() ray missed lense. count")
+            return
+        else:
+            self.sensor.write(sensorYPos)
+
+    def sample_point_source(self, _N):
+        ## Fire N rays and record where they hit on the sensor.
+        # @param _N number of rays.
+
+        # calculate max angle by using following hueristic.
+        theta_max = atan(self.lense.OD / (self.source_pos + self.T))
+        thetas = np.linspace(-theta_max, theta_max, num = _N)
+
+        for theta in thetas:
+            self.sample_ray(theta)
+
+        # now rotate the sensor.
+        self.sensor.rotate()
