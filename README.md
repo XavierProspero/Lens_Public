@@ -19,6 +19,6 @@ Assume that the following variables are provided as inputs (D, R1, T, R2, D2, OD
 to test the following classes follow the steps below. 
 Clone repo. 
 
-`cd Glass_Imaging_lense`
+`cd Glass_Imaging_lens`
 
 `python3 -m pytest gitest.py`
