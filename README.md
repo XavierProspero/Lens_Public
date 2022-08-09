@@ -22,3 +22,16 @@ Clone repo.
 `cd Glass_Imaging_lens`
 
 `python3 -m pytest gitest.py`
+
+## Running
+to run the program make sure all dependencies are installed.
+
+`cd Glass_Imaging_lens`
+
+`python3 app.py $(cat args.txt)`
+
+to run with non default arguments run
+
+`python3 app.py -h`
+
+then edit arguments in `args.txt`
