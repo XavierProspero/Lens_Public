@@ -98,6 +98,14 @@ def test_utils():
     norm_direction = ray_out.normalize((-1, -0.7100244090273644))
     assert soft_equal_tuple(norm_direction, ray_out.direction)
 
+    dir_ray = (-sqrt(3) / 2, 1 / 2)
+    dir_norm = (-1, 1)
+    ray_in = Ray((1 / 2, -sqrt(3) / 2), dir_ray)
+    ray_out = Utils.snells2(ray_in, Ray((0, 0), dir_norm), 1.2, 1)
+    assert ray_out.origin == (0, 0)
+    norm_direction = ray_out.normalize((-1, 0.5074527454681913))
+    assert soft_equal_tuple(norm_direction, ray_out.direction)
+
     # Testing findIntersection
     # Sanity check
     circle = Circle(0, 0, 1)
@@ -117,3 +125,57 @@ def test_utils():
     intersects = Utils.findIntersection(circle, ray)
     assert soft_equal_tuple(intersects[0], (2.1068, 3.4576))
     assert soft_equal_tuple(intersects[1], (1.9168, -0.9117))
+
+
+from gicameramodel import Sensor
+import numpy as np
+
+def test_sensor():
+
+    sensor = Sensor(10, 11)
+    pixel1 = sensor.pixelAt(0, 0)
+    pixel2 = sensor.pixelAt(5, 5)
+    assert soft_equal_tuple(pixel1, (5, 5))
+    assert soft_equal_tuple(pixel2, (11, 0))
+
+    sensor2 = Sensor(4, 5)
+    sensor2.write(0)
+    sensor2.write(2)
+    sensor2.write(-2)
+    test_output1= np.array( [[0., 0., 1., 0., 0.],
+                             [0., 0., 0., 0., 0.],
+                             [0., 0., 1., 0., 0.],
+                             [0., 0., 0., 0., 0.],
+                             [0., 0., 1., 0., 0.]])
+    assert np.array_equal(test_output1, sensor2.sensor)
+
+    test_output2 = np.array([ [0., 0., 1., 0., 0.],
+                             [0., 0., 0., 0., 0.],
+                             [1., 0., 1., 0., 1.],
+                             [0., 0., 0., 0., 0.],
+                             [0., 0., 1., 0., 0.]])
+
+    sensor2.rotate()
+    assert np.array_equal(test_output2, sensor2.sensor)
+
+    # sensor.write(0)
+    # sensor.write(4)
+    # print(sensor.sensor)
+    # sensor.rotate()
+    # print()
+    # print(sensor.sensor)
+    # assert 0
+
+from gicameramodel import Lense
+def test_lense():
+
+    lense = Lense(10, 10, 10, 6)
+    ray_in = Ray((10, 0), (-1, 0))
+    ray_out = lense.refract(ray_in)
+    assert ray_out.getY(120) == 0
+
+    ray_in1 = Ray((100, 0), (-1, .01))
+    ray_out2 = lense.refract(ray_in1)
+    print(ray_out2.origin, ray_out2.direction)
+
+    #TODO write a proper test.

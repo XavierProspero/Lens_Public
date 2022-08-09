@@ -165,6 +165,7 @@ class Utils:
         retval1.rotate(theta_diff)
         retval2.rotate(-theta_diff)
 
+
         if theta_diff > 0:
             # This means that we are getting closer to the norm.
             # Therefore we rotate a vector both ways and see which is more in line
