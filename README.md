@@ -35,3 +35,13 @@ to run with non default arguments run
 `python3 app.py -h`
 
 then edit arguments in `args.txt`
+
+## Dependenciese
+some notable dependecies
+'''
+pip install numpy
+pip install -U pytest
+pip install plotly
+pip install pandas
+pip install ipywidgets
+'''
