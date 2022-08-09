@@ -166,16 +166,16 @@ def test_sensor():
     # print(sensor.sensor)
     # assert 0
 
-from gicameramodel import Lense
-def test_lense():
+from gicameramodel import Lens
+def test_lens():
 
-    lense = Lense(10, 10, 10, 6)
+    lens = Lens(10, 10, 10, 6)
     ray_in = Ray((10, 0), (-1, 0))
-    ray_out = lense.refract(ray_in)
+    ray_out = lens.refract(ray_in)
     assert ray_out.getY(120) == 0
 
     ray_in1 = Ray((100, 0), (-1, .01))
-    ray_out2 = lense.refract(ray_in1)
+    ray_out2 = lens.refract(ray_in1)
 
     #TODO write a proper test.
 
@@ -185,4 +185,3 @@ def test_camera_model():
 
     camera = CameraModel(10, 10, 5, 5, 10, 5, 11, 50)
     camera.sample_point_source(100)
-    print(camera.sensor.sensor)

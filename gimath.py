@@ -144,7 +144,7 @@ class Utils:
     def snells2(_ray, _normal, _n1, _n2):
         ## Returns a new line that results from this ray refracting into this material.
         # @param _ray the incident ray of light.
-        # @param _normal the normal line to the lense.
+        # @param _normal the normal line to the lens.
         # @param _n1 the index of refraction for the initial material.
         # @param _n2 the index of refraction for the refracting material.
 
