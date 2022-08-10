@@ -43,7 +43,10 @@ class Sensor:
         ## A ray is incident at _y mm.
         # @param _y the location in y.
         pixel = self.pixelAt(0, _y)
-        self.sensor[pixel[1]][pixel[0]] += 1
+        if pixel == None:
+            print("Sensorr::Write() ray missed sensor")
+        else:
+            self.sensor[pixel[1]][pixel[0]] += 1
 
     def rotate(self):
         ## Takes all the readings on (0, y) and rotate them by pi.
