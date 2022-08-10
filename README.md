@@ -36,7 +36,7 @@ to run with non default arguments run
 
 then edit arguments in `args.txt`
 
-## Dependenciese
+## Dependencies
 some notable dependecies
 
 ```
