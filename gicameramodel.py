@@ -141,14 +141,8 @@ class CameraModel:
         ray_in = Ray((self.source_pos, 0), (-1, tan(_theta)))
         ray_out = self.lens.refract(ray_in)
 
-        # check if we hit the sensor.
         sensorYPos = ray_out.getY(self.sensor_pos)
-        if abs(sensorYPos) > self.sensor.h:
-            self.lens_miss += 1
-            print("CameraModel::sample_ray() ray missed lens. count")
-            return
-        else:
-            self.sensor.write(sensorYPos)
+        self.sensor.write(sensorYPos)
 
     def sample_point_source(self, _N):
         ## Fire N rays and record where they hit on the sensor.
